@@ -1,0 +1,18 @@
+site:
+  title: Eric Man
+  description: Developer, traveler, tinkerer, building things that work, and always learning.
+  base_url: https://blog.ericman.com
+  sitemap: sitemap.xml
+
+# RSS 2.0 requires an explicit channel title and description. Without these
+# they silently fall back to the site-level values, which works but leaves the
+# feed indistinguishable from the site.
+posts:
+  title: Eric Man — Blog
+  description: Posts from blog.ericman.com — developer, traveler, tinkerer, building things that work, and always learning.
+  rss: rss.xml
+
+# Light code blocks, to match the white page (was base16-ocean.dark, which
+# rendered as a dark slab mid-article).
+syntax_highlight:
+  theme: InspiredGitHub

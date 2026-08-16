@@ -1,0 +1,53 @@
+<header class="site-header">
+  {%- comment -%}
+    The wordmark unfolds letter by letter on load — ericman.com's origami
+    effect, ported in slice 3h. Built from site.title rather than hardcoded, so
+    renaming the site renames the animation with it.
+
+    Two things Cobalt's Liquid does here that are worth knowing, both found by
+    probing rather than assumed:
+
+      * Splitting on an empty string yields a LEADING and a TRAILING empty
+        entry. "Eric Man" comes back as 10 entries, not 8. Rendering those
+        would put two empty spans inside the link and, worse, push every
+        letter's delay one step late — so they are skipped.
+      * Because of that, forloop.index0 is NOT the letter number. The stagger
+        counts real letters itself, with letter_index.
+
+    A space is emitted as a non-breaking space. The parent is a flex container,
+    so an ordinary space would collapse and the two words would run together.
+
+    The letters are hidden from assistive tech and the link carries the whole
+    name as its label, so a screen reader says "Eric Man" instead of spelling
+    it out one span at a time.
+
+    The spans carry NO inline animation-delay any more. Slice 3h set one here
+    from a running letter counter; since 3l the stagger is a --i custom
+    property written by js/origami.js and turned into a delay in the
+    stylesheet. Markup that is inert without JS is the point: with no script
+    these are plain spans and the name simply sits there, which is exactly the
+    fallback we want. The counter went with the delay — the empty-entry guard
+    below is what skips the split's phantom entries, and always was.
+  {%- endcomment -%}
+  {%- assign wordmark = site.title | split: "" -%}
+  <a class="site-title" href="/" aria-label="{{ site.title }}">
+    {%- for ch in wordmark -%}
+    {%- if ch != "" -%}
+    <span aria-hidden="true">{% if ch == " " %}&#160;{% else %}{{ ch }}{% endif %}</span>
+    {%- endif -%}
+    {%- endfor -%}
+  </a>
+  <nav class="site-nav">
+    <ul>
+      <li><a href="/">Blog</a></li>
+      <li><a href="/archive/">Archive</a></li>
+      {%- comment -%}
+        "Tags" is back, per Eric in slice 3g — this reverses Q11, which had
+        removed it in 3b to keep the settled Q8 set. It sits after Archive and
+        before the outbound link, so the internal pages stay grouped.
+      {%- endcomment -%}
+      <li><a href="/tags/">Tags</a></li>
+      <li><a href="https://ericman.com">ericman.com</a></li>
+    </ul>
+  </nav>
+</header>

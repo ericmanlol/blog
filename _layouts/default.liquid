@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include "head.liquid" %}
+<body>
+  {% include "header.liquid" %}
+
+  {%- comment -%}
+    A page opts into the wide list measure with `wide: true` under `data:` in
+    its front matter. Cobalt's front matter is a closed schema — a bare custom
+    key fails the build with "unknown field" — so `data` is the sanctioned
+    place for this.
+
+    It must be TESTED, never interpolated. Printing page.data.wide on a page
+    that doesn't set it is a hard build error ("requested index=wide,
+    available indexes="); testing it reads falsy and is safe. Same asymmetry
+    the paginator guards in tags.liquid and the featured_count guard in
+    post-list.liquid rely on.
+  {%- endcomment -%}
+  <main class="content-section">
+    <div class="content-inner{% if page.data.wide %} content-inner--wide{% endif %}">
+      {{ page.content }}
+    </div>
+  </main>
+
+  {% include "footer.liquid" %}
+</body>
+</html>

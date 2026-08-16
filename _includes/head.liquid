@@ -1,0 +1,93 @@
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  {%- comment -%}
+    Paginated tag pages are all generated from the single tags.liquid source,
+    so page.title and page.permalink are IDENTICAL on every one of them —
+    every /tags/<tag>/ would otherwise claim the title "Tags" and canonicalise
+    to /tags, telling search engines they are all duplicates of the index.
+
+    The paginator is visible from here and carries the real per-page values, so
+    prefer them when present. Both guards are safe everywhere: on ordinary
+    pages the fields are simply absent and read as falsy, and neither is ever
+    interpolated outside its own branch (reading paginator.index_title on the
+    tag INDEX page is a hard build error).
+  {%- endcomment -%}
+  {%- assign page_title = page.title -%}
+  {%- assign page_path = page.permalink -%}
+  {%- if paginator.index_title -%}
+    {%- assign page_title = paginator.index_title | prepend: "Tagged " -%}
+  {%- endif -%}
+  {%- comment -%}
+    The nested test is not redundant. On the tag INDEX page index_permalink
+    exists but is the empty string, and Liquid counts "" as truthy — so the
+    outer guard alone produced a canonical of "https://blog.ericman.com//".
+    The outer guard keeps the field from being read at all on ordinary pages;
+    the inner one rejects the empty value.
+  {%- endcomment -%}
+  {%- if paginator.index_permalink -%}
+    {%- assign pager_path = paginator.index_permalink -%}
+    {%- if pager_path == "" -%}
+      {%- comment -%}
+        An empty index_permalink means this IS the pagination index page (the
+        /tags/ listing). Its own permalink is "tags" with no trailing slash, so
+        add one — it's a directory, and "/tags" would only redirect to "/tags/".
+      {%- endcomment -%}
+      {%- assign page_path = page_path | append: "/" -%}
+    {%- else -%}
+      {%- assign page_path = pager_path | append: "/" -%}
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- comment -%}
+    Pages set their own title in front matter. Cobalt falls back to a title
+    derived from the filename, so the guard below is what keeps the home page
+    from rendering "Eric Man — Eric Man".
+  {%- endcomment -%}
+  <title>{% if page_title and page_title != site.title %}{{ page_title }} — {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+  <meta name="description" content="{{ page.description | default: site.description }}">
+
+  {%- comment -%}
+    page.permalink comes back WITHOUT a leading slash ("index.html",
+    "archive/", "posts/x.html"), so it needs one added by hand — and dropping
+    a trailing "index.html" keeps the home page's canonical as a bare "/"
+    rather than "/index.html".
+  {%- endcomment -%}
+  {%- comment -%}
+    The final replace collapses any doubled slash in the PATH (never the
+    protocol — base_url is prepended afterwards). Belt and braces: a stray
+    trailing slash on a paginated source permalink once produced canonicals
+    like /tags//meta/, and this makes that class of mistake unrenderable.
+  {%- endcomment -%}
+  {%- assign canonical_url = page_path | remove_first: "index.html" | prepend: "/" | replace: "//", "/" | prepend: site.base_url -%}
+  <link rel="canonical" href="{{ canonical_url }}">
+
+  <!-- Open Graph / Social Preview — mirrors ericman.com, reusing the main
+       site's preview asset until the blog gets one of its own (Q9). -->
+  <meta property="og:title" content="{{ page_title | default: site.title }}">
+  <meta property="og:description" content="{{ page.description | default: site.description }}">
+  <meta property="og:url" content="{{ canonical_url }}">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://ericman.com/preview.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://ericman.com/preview.jpg">
+
+  <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="/rss.xml">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/main.css">
+
+  {%- comment -%}
+    The wordmark's unfold trigger. `defer` rather than `async` or a body-end
+    tag: it must run after the header exists but before first paint, so the
+    letters never flash flat-and-finished before folding.
+
+    Purely additive — the stylesheet's resting state is the finished wordmark,
+    so if this 404s, is blocked, or throws, the name is still there.
+  {%- endcomment -%}
+  <script src="/js/origami.js" defer></script>
+</head>

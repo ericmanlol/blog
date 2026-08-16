@@ -1,0 +1,110 @@
+{%- comment -%}
+  Shared post listing — used by the home page, /archive/ and every tag page.
+  Callers assign a `post_list` variable first, then include this file; the
+  include sees the caller's scope.
+
+  TWO ROW STYLES, chosen by the caller:
+
+    * FEATURED — title + multi-line body teaser + inline tag pills, date on
+      the right. The rich row.
+    * COMPACT  — title + date on one line. Nothing else.
+
+  The caller sets `featured_count` to say how many of the leading posts get
+  the rich treatment; everything after that is compact. Unset means 0, i.e.
+  every row compact, which is what a full index (/archive/, tag pages) wants.
+  The home page sets 5.
+
+  Reading `featured_count` takes two steps for a reason. Cobalt's Liquid
+  raises "Unknown variable" the moment an unset name is *used in an
+  expression* — a `default: 0` filter never gets to run, because the lookup
+  fails first. A conditional TEST of a missing name is tolerated (reads
+  falsy), so that is the only safe way to ask whether the caller set it. Same
+  rule the paginator guards in tags.liquid rely on.
+
+  Only the title is a link. The whole-row stretched link from slice 3c was
+  reverted in 3d — see _sass/_posts.scss.
+
+  NOTE: do not write raw Liquid tag syntax inside a comment block. Cobalt's
+  Liquid still counts block tags in there, so a conditional written out
+  longhand opens a block that never closes and the build dies with
+  "Unclosed block".
+{%- endcomment -%}
+{%- assign featured_cutoff = 0 %}
+{%- if featured_count %}{% assign featured_cutoff = featured_count %}{% endif %}
+<ul class="posts-list">
+  {%- for post in post_list %}
+  {%- if forloop.index0 < featured_cutoff %}
+  <li class="post-row post-row--featured">
+    <div class="post-item">
+      <a class="post-title" href="/{{ post.permalink }}">{{ post.title }}</a>
+
+      {%- comment -%}
+        The teaser is drawn from the post BODY, not from excerpt. excerpt is
+        only the first paragraph (excerpt_separator defaults to a blank line),
+        which collapses to a single line when a post opens with a short one —
+        too little to decide whether to click. content is the whole rendered
+        post, so flatten it to text and take the opening of it instead.
+
+        42 is tuned, not arbitrary: Liquid's own word count runs a few ahead of
+        a plain whitespace count, so 42 here renders as 43-45 actual words —
+        mid-range for the 40-50 target, three or four lines on screen.
+
+        Newlines survive strip_html, but HTML collapses them, so the result
+        reflows as normal prose. One rough edge: flattening runs a heading's
+        text straight into the paragraph before it, with no punctuation
+        between. Only shows up on posts whose first 45 words reach a heading.
+      {%- endcomment -%}
+      {%- assign preview = post.content | strip_html | strip %}
+      {%- if preview != "" %}
+      <p class="post-excerpt">{{ preview | truncatewords: 42, "…" }}</p>
+      {%- endif %}
+
+      {%- comment -%}
+        A second, explicit way into the post, under the teaser.
+
+        Deliberately OUTSIDE the excerpt guard above: a featured row always
+        offers this, including for a post whose body flattened to nothing and
+        therefore has no teaser to read.
+
+        Same href expression as the title, so the two anchors in this row
+        always resolve to one URL — if the permalink pattern ever changes,
+        both move together. They are plain siblings, not nested: the stretched
+        link from 3c is long gone and nothing overlays the row, so both are
+        ordinary focusable anchors.
+
+        The arrow is written as an entity to match the ones already in
+        tags.liquid and .post-footer.
+      {%- endcomment -%}
+      <a class="post-more" href="/{{ post.permalink }}">View this post &#8594;</a>
+
+      {%- comment -%}
+        Test .size, not truthiness: Liquid treats an empty array as truthy, so
+        testing the array alone renders an empty tag list for untagged posts.
+        slugify matches how Cobalt names the generated tag directories
+        ("Home Lab" becomes tags/home-lab/), so these links stay correct for
+        multi-word tags.
+      {%- endcomment -%}
+      {%- if post.tags.size > 0 %}
+      <ul class="tag-list">
+        {%- for tag in post.tags %}
+        <li><a class="tag" href="/tags/{{ tag | slugify }}/">{{ tag }}</a></li>
+        {%- endfor %}
+      </ul>
+      {%- endif %}
+    </div>
+
+    <span class="post-date">{{ post.published_date | date: "%B %d, %Y" }}</span>
+  </li>
+  {%- else %}
+  {%- comment -%}
+    No .post-item wrapper here on purpose: with only two children the <li>'s
+    own flex rule puts title and date on one line, which is exactly the
+    original listing markup.
+  {%- endcomment -%}
+  <li class="post-row post-row--compact">
+    <a class="post-title" href="/{{ post.permalink }}">{{ post.title }}</a>
+    <span class="post-date">{{ post.published_date | date: "%B %d, %Y" }}</span>
+  </li>
+  {%- endif %}
+  {%- endfor %}
+</ul>

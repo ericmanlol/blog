@@ -1,0 +1,79 @@
+// Reset + baseline typography, matching ericman.com.
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-mono);
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+  // The main site needs overflow-x: hidden because of the slanted gallery
+  // bands. Nothing here overflows, so leaving it off keeps position: sticky
+  // working on the header.
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+// The homepage deliberately omits link underlines. Long-form prose needs the
+// affordance, so underline on hover — and always underline links inside body
+// copy, where "pink word mid-sentence" alone is a weak signal.
+a:hover,
+a:focus-visible {
+  text-decoration: underline;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+code,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.15em 0.4em;
+  border-radius: 3px;
+}
+
+pre {
+  overflow-x: auto;
+  padding: 1.25rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+
+  // The InspiredGitHub syntax theme paints <pre> #ffffff via an inline style —
+  // identical to the page, so without this the block has no edges at all and
+  // reads as stray indented text. The inline background can't be overridden
+  // from here, but a border can't be set inline, so that's what delineates it.
+  border: 1px solid var(--rule);
+
+  // Cobalt emits highlighted code as <pre><code>…</code></pre> with inline
+  // colors from the syntax theme; the wrapper must not fight it.
+  code {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+  }
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 2.5rem 0;
+}

@@ -1,0 +1,14 @@
+---
+title: Archive
+description: Every post, newest first.
+layout: page.liquid
+permalink: /archive/
+data:
+  wide: true
+---
+{% if collections.posts.pages.size > 0 %}
+{% assign post_list = collections.posts.pages %}
+{% include "post-list.liquid" %}
+{% else %}
+<p>Nothing published yet.</p>
+{% endif %}

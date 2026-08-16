@@ -1,0 +1,21 @@
+---
+title: Eric Man
+layout: default.liquid
+data:
+  wide: true
+---
+<h1>{{ site.title }}</h1>
+<p class="site-tagline">{{ site.description }}</p>
+
+{% if collections.posts.pages.size > 0 %}
+{% assign post_list = collections.posts.pages %}
+{%- comment -%}
+  The home page previews the 5 newest posts (title + teaser + tags) and lists
+  everything older as one-liners. /archive/ and the tag pages set no
+  featured_count, so they are compact throughout.
+{%- endcomment -%}
+{% assign featured_count = 5 %}
+{% include "post-list.liquid" %}
+{% else %}
+<p class="site-tagline">Nothing published yet.</p>
+{% endif %}

@@ -1,0 +1,15 @@
+# Cobalt build output
+_site/
+
+# Rust/cargo tooling cruft (if any local target dirs appear)
+target/
+
+# OS / editor noise
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Build journal + reference material — kept locally, not published
+_meta/
+_reference/

@@ -1,0 +1,217 @@
+// Post listings + the single-post page.
+// .posts-list / .post-title / .post-date are lifted verbatim from the stub
+// already in ericman.com's CSS — same class names on purpose, so the two
+// codebases stay recognisable to each other.
+
+.posts-list {
+  list-style: none;
+  margin-top: 2rem;
+
+  // One rule for both row styles, and that is the point: a compact row
+  // (.post-row--compact — title + date, two children) lands on a single line
+  // from this alone, which is the original listing look. A featured row
+  // (.post-row--featured) puts a multi-line .post-item on the left instead,
+  // and the same flex rule keeps the date beside it. Neither needs its own
+  // block, so the rows stay on one vertical rhythm.
+  //
+  // `> li`, NOT `li`. A featured row contains another list — the tag pills —
+  // so as a descendant selector this matched every pill too, giving each one
+  // the row's padding, flex and border-bottom. That drew a short stray line
+  // under each pill except the last (which escaped via :last-child below):
+  // the doubled line under featured rows. The child combinator is the whole
+  // fix; nothing about the pills themselves needed changing.
+  > li {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+
+  > li:last-child {
+    border-bottom: none;
+  }
+
+  // A featured row's left column is multi-line; keep the date from being
+  // squeezed by a long title or excerpt.
+  .post-date {
+    flex-shrink: 0;
+  }
+}
+
+.post-title {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--color-text);
+
+  // Only the title is clickable — the whole-row stretched link tried in slice
+  // 3c is deliberately gone (Eric's call). A row is a title link, tag links,
+  // and inert text; nothing overlays it.
+  &:hover,
+  &:focus-visible {
+    color: var(--color-accent);
+  }
+}
+
+// The left-hand column of a FEATURED list item: title, excerpt, tags. Compact
+// rows have no wrapper — the title and date are direct children of the <li>.
+.post-item {
+  min-width: 0; // lets long excerpts wrap instead of stretching the flex row
+}
+
+.post-date {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  white-space: nowrap; // keep "August 10, 2026" from wrapping mid-date
+}
+
+// Teaser — the first ~45 words of the post body, flattened to text. Muted,
+// because it is secondary to the title it sits under. It now runs to three or
+// four lines, so it gets a slightly tighter line-height than body prose and a
+// measure that keeps those lines comfortable to scan.
+.post-excerpt {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  max-width: 60ch;
+}
+
+// The second way into a post, sitting between the teaser and the pills.
+//
+// `display: block` is what gives it its own line — .post-item is an ordinary
+// block container, so the anchor would otherwise run inline after the excerpt
+// paragraph. `width: max-content` keeps the clickable area to the words
+// themselves rather than the full column width, which matters because the
+// column is up to 72rem wide on list pages.
+//
+// Colour and the hover underline are deliberately NOT restated here: the base
+// `a` rule in _base.scss already gives every anchor `var(--color-accent)` and
+// `text-decoration: underline` on hover/focus-visible. Repeating them would be
+// two more places to forget when the token changes.
+//
+// Left in sentence case on purpose. The site's other small action links
+// (.post-footer, .pagination, the nav) are uppercase with wide tracking, but
+// those appear once per page; this one repeats on every featured row, and
+// five uppercase lines down a list reads as shouting.
+.post-more {
+  display: block;
+  width: max-content;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+}
+
+// ========== TAGS ==========
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin-top: 0.75rem;
+}
+
+// A chip. Outline by default so a row of tags stays quiet next to the title;
+// fills with the accent on hover. No colors beyond the tokens.
+.tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  padding: 0.35em 0.7em;
+  border: 1px solid var(--rule);
+  border-radius: 100px;
+  color: var(--color-accent);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-bg);
+    text-decoration: none;
+  }
+}
+
+// /tags/ — every tag with its post count.
+.tag-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  list-style: none;
+  margin-top: 2rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+}
+
+.tag-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+// ========== PAGINATION ==========
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 3rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.pagination-position {
+  color: var(--color-text-muted);
+}
+
+// The archive groups by year; the listing itself is the same .posts-list.
+.archive-year {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  margin-top: 3rem;
+  color: var(--color-text-muted);
+}
+
+// ========== SINGLE POST ==========
+.post-header {
+  margin-bottom: 3rem;
+}
+
+// The post's own date sits under the title, not beside it.
+.post-header .post-date {
+  display: block;
+  margin-top: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+// On a post page the tags sit under the date, with a little more room than
+// they get inside a list item.
+.post-header .tag-list {
+  margin-top: 1rem;
+}
+
+// Bottom-of-post navigation back to the index.
+.post-footer {
+  margin-top: 4rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 768px) {
+  // `> li` for the same reason as the desktop rule above: without the child
+  // combinator this also stacked every tag pill's contents and reset their
+  // gap. Less visible than the stray borders — a pill holds one link, so
+  // column vs row barely shows — but the same leak, so it gets the same fix
+  // rather than being left as a trap for the next person.
+  .posts-list > li {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

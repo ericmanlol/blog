@@ -1,0 +1,27 @@
+// Design tokens — copied verbatim from ericman.com's inline <style> block.
+// Source of truth: _reference/DESIGN-TOKENS.md (and _reference/ericman-site-index.html).
+// Do not "improve" these values; they exist to keep the blog and the main site
+// visually identical.
+
+:root {
+  --color-bg: #ffffff;
+  --color-gallery: #4a4a52; // charcoal — footer bg
+  --color-text: #1a1a1f; // near-black
+  --color-text-muted: #6b6b73; // dates, captions, secondary
+  --color-accent: #e85d75; // links — rose/pink
+
+  --font-mono: 'Space Mono', monospace;
+  --font-serif: 'Instrument Serif', serif;
+
+  // Blog-only additions. The main site is a one-pager and never needed these.
+  --rule: rgba(0, 0, 0, 0.08); // the .posts-list li border, promoted to a token
+
+  // Two measures, because the page has two jobs. --measure is the reading
+  // column: prose wants a line short enough to scan without losing your place.
+  // --measure-wide is for index pages, which are scanned rather than read — a
+  // list row is a title at one edge and a date at the other, and it benefits
+  // from the room that prose does not. Capped rather than fluid so it stops
+  // sprawling on an ultrawide monitor.
+  --measure: 800px; // .content-inner — the reading column
+  --measure-wide: 72rem; // .content-inner--wide — 1152px, the list column
+}

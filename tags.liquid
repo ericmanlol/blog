@@ -1,0 +1,59 @@
+---
+title: Tags
+description: Browse posts by tag.
+permalink: /tags
+layout: default.liquid
+data:
+  wide: true
+pagination:
+  include: Tags
+  permalink_suffix: _p/{{num}}
+  per_page: 10
+---
+{%- comment -%}
+  One file, two kinds of output — this is how Cobalt's tag pagination works
+  (see _reference/example-tags/):
+
+    * /tags/            -> paginator.indexes is set: the list of every tag
+    * /tags/<tag>/      -> paginator.pages is set: the posts carrying that tag
+
+  Two traps worth knowing:
+    1. paginator.index_title does NOT exist on the index page. Reading it
+       there is a hard build error ("Unknown index"), so it may only be touched
+       inside the else branch.
+    2. A conditional test tolerates a missing paginator field (it reads as
+       falsy), but interpolating one is a build error. That's why the prev/next
+       block below guards on paginator.previous_index before printing the
+       permalink — those fields are absent entirely when a tag has one page.
+{%- endcomment -%}
+{% if paginator.indexes %}
+<h1>Tags</h1>
+<p class="site-tagline">Every tag used so far, with the number of posts under each.</p>
+
+<ul class="tag-index">
+  {%- for ptag in paginator.indexes %}
+  <li>
+    <a class="tag" href="/{{ ptag.index_permalink }}/">{{ ptag.index_title }}</a>
+    <span class="tag-count">{{ ptag.total_pages }}</span>
+  </li>
+  {%- endfor %}
+</ul>
+{% else %}
+<h1>Tagged &ldquo;{{ paginator.index_title }}&rdquo;</h1>
+<p class="site-tagline"><a href="/tags/">&#8592; All tags</a></p>
+
+{% assign post_list = paginator.pages %}
+{% include "post-list.liquid" %}
+
+{% if paginator.total_pages > 1 %}
+<nav class="pagination">
+  {%- if paginator.previous_index %}
+  <a href="/{{ paginator.previous_index_permalink }}/">&#8592; Newer</a>
+  {%- endif %}
+  <span class="pagination-position">{{ paginator.index }} / {{ paginator.total_pages }}</span>
+  {%- if paginator.next_index %}
+  <a href="/{{ paginator.next_index_permalink }}/">Older &#8594;</a>
+  {%- endif %}
+</nav>
+{% endif %}
+{% endif %}

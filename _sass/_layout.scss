@@ -1,0 +1,340 @@
+// Page chrome: header/nav, the reading column, footer.
+// Borrowed from ericman.com's .hero-nav / .content-* / .footer rules, minus the
+// one-pager gimmicks (canvas, origami text, music toggle, slant bands).
+
+// ========== HEADER ==========
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem 2rem;
+  // Same blurred-white treatment the homepage nav uses. Deliberately kept:
+  // the translucency and the blur ARE the effect, not incidental.
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+
+  // A box-shadow hairline, NOT `border-bottom: 1px solid var(--rule)`.
+  //
+  // A border is part of the border box, so on a translucent, backdrop-filtered
+  // bar it has three things to disagree with: the background is only 90%
+  // opaque, so --rule (which is itself rgba at 0.08) composites over whatever
+  // scrolls underneath rather than over white; the backdrop-filter's clip
+  // boundary lands on the same edge; and the border occupies layout, so at
+  // fractional device pixel ratios it can straddle two rows. The result reads
+  // as a soft or doubled seam rather than one line.
+  //
+  // A box-shadow is painted outside the border box, takes no layout space, and
+  // has no relationship to the filter's clip edge — so it resolves to a single
+  // crisp hairline while the glass above it is untouched.
+  box-shadow: 0 1px 0 var(--rule);
+}
+
+.site-title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--color-text);
+
+  // Flex so the per-letter spans sit side by side with no whitespace text
+  // nodes between them. Perspective is what makes the top-hinge rotateX read
+  // as a flap swinging through depth rather than a letter being squashed
+  // vertically; 700px is a shorter viewing distance than ericman.com's
+  // 1000px, deliberately, because this fold is bigger and wants the extra
+  // foreshortening.
+  display: inline-flex;
+  perspective: 700px;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-accent);
+    text-decoration: none;
+  }
+}
+
+// ===== Origami wordmark =====
+// Each letter is a hinged paper flap. It starts folded back over its own TOP
+// edge (edge-on, invisible), falls open past the line so it hangs BELOW its
+// slot, then lines out — like a folded strip of paper being flattened.
+//
+// This replaces slice 3h's port of ericman.com's effect, which rotated on
+// `rotateY` about a `left center` hinge and therefore read as a slow
+// left-to-right reveal rather than an unfold. The axis (X, not Y) and the
+// hinge (top, not left) are the two changes that make it vertical.
+//
+// RESTING STATE IS THE FINISHED STATE. `.site-title span` below carries no
+// opacity and no transform, so the name is simply present. The fold is added
+// only by `.is-unfolding`, which js/origami.js attaches — and only after that
+// script has checked the reader's motion preference. No JS, script blocked,
+// script errored, reduced motion: all of them land on "the name is just
+// there". There is no code path where the wordmark is invisible.
+.site-title span {
+  display: inline-block;
+
+  // The hinge. This is the single most load-bearing line in the effect — move
+  // it back to `left center` and the whole thing becomes a horizontal sweep
+  // again, whatever the keyframes say.
+  transform-origin: top center;
+}
+
+// Belt and braces alongside the check in js/origami.js. The script already
+// refuses to add `.is-unfolding` when reduced motion is requested; this makes
+// the animation unreachable even if the class arrives by some other route.
+@media (prefers-reduced-motion: no-preference) {
+  .site-title.is-unfolding span {
+    // `both` matters as much as the duration: `backwards` holds the folded 0%
+    // state during the letter's stagger delay. Without it every letter would
+    // sit flat and visible, then snap to folded when its delay elapsed.
+    animation: origamiUnfold 0.85s both;
+
+    // --i is the letter index, set by js/origami.js. Keeping the arithmetic
+    // here means the stagger is retuned in CSS, not JavaScript.
+    //
+    // 55ms across 8 letters spreads the start times over 385ms while each
+    // letter runs for 850ms — so the letters are in motion together for most
+    // of it. That is the difference between a cascade and the left-to-right
+    // reveal this slice exists to get rid of.
+    animation-delay: calc(var(--i, 0) * 55ms);
+  }
+}
+
+// Only `opacity` and `transform` animate. Neither participates in layout, so
+// nothing here can reflow the header or shift the nav while it plays — and the
+// 7px the letters hang below the line is well inside .site-header's 1rem
+// bottom padding, with no `overflow: hidden` anywhere up the tree to clip it.
+@keyframes origamiUnfold {
+  // Folded back over the top hinge: edge-on, so it has no visible height.
+  0% {
+    opacity: 0;
+    transform: rotateX(-90deg) translateY(0);
+    animation-timing-function: cubic-bezier(0.33, 0, 0.35, 1);
+  }
+
+  // Opaque well before it reaches the line, so the eye reads a flap falling
+  // open rather than text fading in.
+  25% {
+    opacity: 1;
+    transform: rotateX(-42deg) translateY(3px);
+    animation-timing-function: cubic-bezier(0.33, 0, 0.35, 1);
+  }
+
+  // THE POINT OF THE WHOLE EFFECT: it has swung past flat and is hanging
+  // BELOW its slot, tipped forward. If this frame is not visible, the effect
+  // has failed and the numbers here are what to turn up.
+  62% {
+    opacity: 1;
+    transform: rotateX(16deg) translateY(7px);
+
+    // A back-ease for the return: y > 1 on the second control point carries
+    // the letter slightly past flat — a touch above the line — before it
+    // settles. That tiny rebound is what sells it as paper flattening rather
+    // than a slider easing to a stop.
+    animation-timing-function: cubic-bezier(0.34, 1.5, 0.64, 1);
+  }
+
+  // Lined out.
+  100% {
+    opacity: 1;
+    transform: rotateX(0deg) translateY(0);
+  }
+}
+
+// Nav type from the site: small, uppercase, wide letter-spacing.
+.site-nav ul {
+  display: flex;
+  gap: 2rem;
+  list-style: none;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+// ========== CONTENT ==========
+.content-section {
+  flex: 1; // pins the footer to the bottom on short pages
+  padding: 6rem 2rem;
+  background: var(--color-bg);
+}
+
+// Left-aligned, not centered: no `margin: 0 auto`. The content pins to the
+// left and .content-section's own 2rem padding becomes the left margin — the
+// same 2rem the header and footer use, so all three share one left edge.
+// Changing that gutter moves all three together, which is the point.
+.content-inner {
+  max-width: var(--measure);
+}
+
+// The wide measure, opted into per PAGE rather than per layout: /archive/ runs
+// on page.liquid and the home page on default.liquid, so keying width off the
+// layout would either miss the archive or drag every future prose page wide
+// with it. A page asks for this by setting `wide: true` under `data:` in its
+// front matter; anything that doesn't ask gets the reading measure.
+.content-inner--wide {
+  max-width: var(--measure-wide);
+}
+
+// The home page's standfirst, directly under the big italic name.
+.site-tagline {
+  color: var(--color-text-muted);
+  max-width: 40ch;
+}
+
+// Headings follow the site's fluid clamp() scale. h2 is the italic display
+// size; h1 reuses it so a post title reads like a section title on ericman.com.
+.content-inner {
+  h1,
+  h2 {
+    font-family: var(--font-serif);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+  }
+
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-weight: 400;
+    margin-bottom: 1rem;
+  }
+
+  // Headings that follow body copy need air above them.
+  h2,
+  h3,
+  h4 {
+    margin-top: 2.5rem;
+  }
+
+  h1:first-child,
+  h2:first-child,
+  h3:first-child {
+    margin-top: 0;
+  }
+
+  p {
+    margin-bottom: 1rem;
+  }
+
+  // PROSE lists only — the ones markdown generates, which have no class.
+  //
+  // Written as a bare `ul` this rule was quietly breaking the page's left
+  // edge. `.content-inner ul` is specificity (0,1,1); `.posts-list`,
+  // `.tag-list` and `.tag-index` are (0,1,0), so this rule won against all
+  // three regardless of source order — indenting every component list 1.5rem
+  // past the heading above it, and (because `margin` is a shorthand) resetting
+  // the `margin-top` those components set for themselves.
+  //
+  // Invisible while the column was centered and there was nothing to line up
+  // against. Immediately visible once everything is left-aligned, which is how
+  // it turned up: the post list did not share the left edge with the header
+  // title, the h1, or the footer.
+  //
+  // `:not([class])` fixes the class of bug rather than the three instances —
+  // a component list added later carries a class and is left alone by default.
+  ul:not([class]),
+  ol:not([class]) {
+    margin: 0 0 1rem 1.5rem;
+  }
+
+  li {
+    margin-bottom: 0.35rem;
+  }
+
+  blockquote {
+    font-family: var(--font-serif);
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    font-style: italic;
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+    padding-left: 1.5rem;
+    border-left: 3px solid var(--color-text-muted);
+    color: var(--color-text);
+
+    cite {
+      display: block;
+      font-size: 1rem;
+      font-style: normal;
+      margin-top: 0.75rem;
+      color: var(--color-text-muted);
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+  }
+
+  th,
+  td {
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+}
+
+// ========== FOOTER ==========
+.footer {
+  padding: 4rem 2rem;
+  background: var(--color-gallery);
+  color: white;
+}
+
+// Left-aligned to match the content above it — the `margin: 0 auto` is gone,
+// so the footer's left edge sits on the same 2rem as the header title and the
+// content column. max-width is left at its original 1400px: the brief was to
+// align the left edge, not to re-measure the footer.
+.footer-inner {
+  max-width: 1400px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.footer-links {
+  display: flex;
+  gap: 2rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+
+  // The site's footer links are plain white on charcoal, not pink.
+  a {
+    color: white;
+  }
+}
+
+.footer-copy {
+  font-size: 0.75rem;
+  opacity: 0.5;
+}
+
+// ========== RESPONSIVE ==========
+@media (max-width: 768px) {
+  .content-section {
+    padding: 3rem 1.5rem;
+  }
+
+  .site-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+  }
+
+  .site-nav ul {
+    gap: 1rem;
+    font-size: 0.75rem;
+  }
+
+  .footer {
+    padding: 3rem 1.5rem;
+  }
+}
